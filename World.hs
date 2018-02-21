@@ -10,7 +10,10 @@ instance Show Cell where
     show Off = "◇"
 
 data World a = BaseDim [Cell] Cell [Cell] | HigherDim [World a] (World a) [World a]
-    deriving (Functor)
+
+mapWorld :: (Cell -> Cell) -> World a -> World a
+mapWorld f (BaseDim l c r) = BaseDim (map f l) (f c) (map f r)
+mapWorld f (HigherDim u c d) = HigherDim ((map . mapWorld) f u) (mapWorld f c) ((map . mapWorld) f d)
 
 instance Show (World a) where
     show (BaseDim l c r) = (listString $ reverse shortLs) ++ "  " ++ (show c) ++ "  " ++ (listString shortRs)
