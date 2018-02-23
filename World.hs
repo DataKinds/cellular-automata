@@ -3,19 +3,16 @@
 module World where
 
 import Data.List
+import Control.Applicative
 
 data Cell = On | Off
 instance Show Cell where
     show On = "◆"
     show Off = "◇"
 
-data World a = BaseDim [Cell] Cell [Cell] | HigherDim [World a] (World a) [World a]
+data World a = BaseDim [a] a [a] | HigherDim [World a] (World a) [World a] deriving (Functor)
 
-mapWorld :: (Cell -> Cell) -> World a -> World a
-mapWorld f (BaseDim l c r) = BaseDim (map f l) (f c) (map f r)
-mapWorld f (HigherDim u c d) = HigherDim ((map . mapWorld) f u) (mapWorld f c) ((map . mapWorld) f d)
-
-instance Show (World a) where
+instance (Show a) => Show (World a) where
     show (BaseDim l c r) = (listString $ reverse shortLs) ++ "  " ++ (show c) ++ "  " ++ (listString shortRs)
         where
             shortLs = take 4 l
@@ -26,6 +23,11 @@ instance Show (World a) where
             shortUs = take 4 u
             shortDs = take 4 d
             listString ls = intercalate "\n" $ map show ls
+instance Applicative (World) where
+    pure a = BaseDim (repeat a) a (repeat a)
+    (<*>) (BaseDim lf lc lr) (BaseDim l c r) = BaseDim (zipWith ($) lf l) (lc c) (zipWith ($) lr r)
+    --liftA2 f (BaseDim l c r) (BaseDim l' c' r') = BaseDim (zipWith f l l') (f c c') (zipWith f r r')
+    --liftA2 f (HigherDim u c d) (HigherDim u' c' d') = HigherDim (zipWith () u u')
 
 left :: World a -> World a
 left (BaseDim (l:ls) c rs) = BaseDim ls l (c:rs)
@@ -48,13 +50,16 @@ getNeighborhood (HigherDim us c ds) = HigherDim (map getNeighborhood (take radiu
     where
         radius = 1
 
-write :: Cell -> World a -> World a
+write :: a -> World a -> World a
 write c' (BaseDim l c r) = BaseDim l c' r
 write c' (HigherDim u c d) = HigherDim u (write c' c) d
 
+--worldZip :: (a -> b -> c) -> World a -> World b -> World c
+
+
 defaultCell :: Cell
 defaultCell = Off
-genOneD :: World a
+genOneD :: World Cell
 genOneD = BaseDim (repeat defaultCell) defaultCell (repeat defaultCell)
-genTwoD :: World a
+genTwoD :: World Cell
 genTwoD = HigherDim (repeat genOneD) genOneD (repeat genOneD)
