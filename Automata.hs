@@ -23,8 +23,8 @@ genUniverse w@(BaseDim l c r) = HigherDim () (w) (r)
 mapWorld :: (Cell -> Cell) -> World a -> World a
 mapWorld f (BaseDim l c r) = BaseDim (map f l) (f c) (map f r)
 mapWorld f (HigherDim u c d) = HigherDim ((map . mapWorld) f u) (mapWorld f c) ((map . mapWorld) f d)
-    where
-        createUniverse =
+--    where
+--        createUniverse =
 
 rule :: World a -> Cell
 rule w = On
