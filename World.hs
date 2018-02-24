@@ -26,6 +26,7 @@ instance (Show a) => Show (World a) where
 instance Applicative (World) where
     pure a = BaseDim (repeat a) a (repeat a)
     (<*>) (BaseDim lf lc lr) (BaseDim l c r) = BaseDim (zipWith ($) lf l) (lc c) (zipWith ($) lr r)
+    (<*>) (HigherDim uf cf df) (HigherDim u c d) = HigherDim (zipWith (<*>) uf u) (cf <*> c) (zipWith (<*>) df d)
     --liftA2 f (BaseDim l c r) (BaseDim l' c' r') = BaseDim (zipWith f l l') (f c c') (zipWith f r r')
     --liftA2 f (HigherDim u c d) (HigherDim u' c' d') = HigherDim (zipWith () u u')
 
